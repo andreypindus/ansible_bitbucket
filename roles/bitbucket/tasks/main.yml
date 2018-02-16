@@ -1,0 +1,58 @@
+---
+# tasks file for bitbucket
+- name: Install Git
+  yum:
+    name: git
+    state: present
+
+- name: Create BitBucket user
+  user:
+    name: bitbucket
+    shell: /bin/bash
+    comment: "Account for running BitBucket Software"
+    createhome: yes
+
+- name: Create installation directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: bitbucket
+  with_items:
+    - "{{ bitbucket_home }}"
+    - "{{ install_dir }}"
+  
+- name: Download BitBucket archive and unpack
+  unarchive:
+    src: https://www.atlassian.com/software/stash/downloads/binary/atlassian-bitbucket-5.6.3.tar.gz
+    dest: "{{ install_dir }}"
+    owner: bitbucket
+    remote_src: yes
+
+- name: Set Bitbucket home dir
+  template:
+    src: set-bitbucket-home.sh.j2
+    dest: "{{ install_dir }}/atlassian-bitbucket-5.6.3/bin/set-bitbucket-home.sh"
+    owner: bitbucket
+
+- name: Download JAVA JRE8
+  get_url:
+    url: "http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/{{ java_package }}"
+    dest: /root/
+    headers: 'Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie'
+
+- name: Unarchive JAVA JRE8
+  command: "tar xzf /root/{{ java_package }} -C {{ java_path }}"
+  
+- name: Select JAVA JRE8
+  alternatives:
+    name: java
+    link: /usr/bin/java
+    path: "{{ java_path }}/{{ java_dir }}/bin/java"
+
+- name: Start Bitbucket
+  become_user: bitbucket
+  shell: nohup "{{ install_dir }}/atlassian-bitbucket-5.6.3/bin/start-bitbucket.sh" &
+  environment:
+    JAVA_HOME: "{{ java_path }}/{{ java_dir }}"
+  register: shellout
+- debug: var=shellout

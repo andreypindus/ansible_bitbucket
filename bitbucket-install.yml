@@ -2,19 +2,7 @@
   - hosts: bitbucket
     remote_user: ec2-user
     become: true
-    tasks:
-    - name: Create installation directory
-      file:
-        path: "{{ item }}"
-        state: directory
-      with_items:
-        - /tmp/bitbucket
-        - /var/bitbucket-home
-      
-    - name: Download BitBucket archive and unpack
-      unarchive:
-        src: https://www.atlassian.com/software/stash/downloads/binary/atlassian-bitbucket-5.6.3.tar.gz
-        dest: /tmp/bitbucket
-        remote_src: yes
+    roles:
+      - role: bitbucket
 
     

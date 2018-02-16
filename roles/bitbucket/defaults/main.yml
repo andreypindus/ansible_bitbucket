@@ -1,0 +1,7 @@
+---
+# defaults file for bitbucket
+bitbucket_home: /var/bitbucket-home
+install_dir: /tmp/bitbucket
+java_path: /etc/alternatives
+java_package: jdk-8u161-linux-x64.tar.gz
+java_dir: jdk1.8.0_161
