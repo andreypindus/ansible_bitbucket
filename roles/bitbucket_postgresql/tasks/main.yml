@@ -1,0 +1,56 @@
+---
+# tasks file for bitbucket_postgresql
+- name: install prerequisites
+  pip: name=psycopg2
+
+- name: Install postgresql server
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - https://download.postgresql.org/pub/repos/yum/9.3/redhat/rhel-6-x86_64/pgdg-ami201503-93-9.3-2.noarch.rpm
+    - postgresql93
+    - postgresql93-server
+    - python-psycopg2
+
+- name: Initdb
+  command: service postgresql93 initdb
+  register: command_result
+  ignore_errors: True
+
+- name: Set PostgreSQL config for pg_hba
+  template:
+    src: ./templates/pg_hba.conf.j2
+    dest: /var/lib/pgsql93/data/pg_hba.conf
+      
+- name: Set PostgreSQL config for postgresql.conf
+  template:
+    src: ./templates/postgresql.conf.j2
+    dest: /var/lib/pgsql93/data/postgresql.conf
+
+- name: Start Postgresql service
+  service:
+    name: postgresql93
+    state: started
+    enabled: yes
+
+- name: Creat DB user
+  become_user: postgres
+  postgresql_user:
+    name: "{{ bitbucket_db_user }}"
+    password: "{{ bitbucket_db_user_password }}"
+
+- name: Creat DB
+  become_user: postgres
+  postgresql_db:
+    name: "{{ bitbucket_db_name }}"
+    encoding: 'UTF8'
+    owner: "{{ bitbucket_db_user }}"
+
+- name: Grant full access for user to DB
+  become_user: postgres
+  postgresql_privs:
+    db: "{{ bitbucket_db_name }}"
+    privs: ALL
+    type: database
+    role: "{{ bitbucket_db_user }}"

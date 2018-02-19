@@ -1,0 +1,8 @@
+---
+# defaults file for bitbucket_postgresql
+listen_address: 0.0.0.0/0
+listen_address_config: "'0.0.0.0'"
+connection_method: md5
+bitbucket_db_user: bitbucket
+bitbucket_db_user_password: bitbucketdb2017
+bitbucket_db_name: bitbucket
